@@ -4,7 +4,8 @@ import torch
 
 import speech_recognition
 import openai
-import soundfile
+
+from pydub import AudioSegment
 
 from aiogram import Bot, Dispatcher, executor, types
 from pathlib import Path
@@ -39,18 +40,20 @@ dp = Dispatcher(bot)
 
 
 async def handle_file(file: File, file_name: str):
-    Path("D:\\CPP_Projects\\Project").mkdir(parents=True, exist_ok=True)
-    await bot.download_file(file_path=file.file_path, destination=f"D:\\CPP_Projects\\Project\\{file_name}")
+    Path("/home/ChatGPTVoiceBot/voices").mkdir(parents=True, exist_ok=True)
+    await bot.download_file(file_path=file.file_path, destination=f"/home/ChatGPTVoiceBot/voices/{file_name}")
 
 
 @dp.message_handler(content_types=["voice"])
 async def voice_handler(message: types.Message):
     voice = await message.voice.get_file()
     await handle_file(file=voice, file_name=f"{voice.file_id}.ogg")
-    data, samplerate = soundfile.read(f'{voice.file_id}.ogg')
-    soundfile.write(f'{voice.file_id}.wav', data, samplerate)
+    given_audio = AudioSegment.from_file(f"/home/ChatGPTVoiceBot/voices/{voice.file_id}.ogg", format="ogg")
+    given_audio.export(f"/home/ChatGPTVoiceBot/voices/{voice.file_id}.wav", format="wav")
 
-    hardvard = speech_recognition.AudioFile(f"D:\\CPP_Projects\\Project\\{voice.file_id}.wav")
+
+
+    hardvard = speech_recognition.AudioFile(f"/home/ChatGPTVoiceBot/voices/{voice.file_id}.wav")
     with hardvard as source:
         audio = r.record(source)
         query = r.recognize_google(audio, language='ru-RU')
@@ -73,7 +76,7 @@ async def voice_handler(message: types.Message):
 
         paths = model.save_wav(text=finalText.split('\n', 1)[1], speaker=speaker, sample_rate=sample_rate)
 
-        audioo = InputFile(f"D:\\CPP_Projects\\Project\\test.wav")
+        audioo = InputFile(f"/home/ChatGPTVoiceBot/test.wav")
 
         await bot.send_voice(message.chat.id, voice=audioo)
 
