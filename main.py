@@ -43,29 +43,6 @@ async def handle_file(file: File, file_name: str):
     await bot.download_file(file_path=file.file_path, destination=f"D:\\CPP_Projects\\Project\\{file_name}")
 
 
-@dp.message_handler(content_types=types.ContentTypes.TEXT)
-async def mess_handler(message: types.Message):
-    prompt = message.text
-    completion = openai.Completion.create(
-        engine=model_engine,
-        prompt=prompt,
-        max_tokens=1024,
-        temperature=0,
-        top_p=0,
-        frequency_penalty=0,
-        presence_penalty=1
-    )
-    finalText = translit(completion.choices[0].text, 'ru')
-
-    await message.answer(finalText.split('\n', 1)[1])
-
-    paths = model.save_wav(text=finalText.split('\n', 1)[1], speaker=speaker, sample_rate=sample_rate)
-
-    audioo = InputFile(f"D:\\CPP_Projects\\Project\\test.wav")
-
-    await bot.send_voice(message.chat.id, voice=audioo)
-
-
 @dp.message_handler(content_types=["voice"])
 async def voice_handler(message: types.Message):
     voice = await message.voice.get_file()
