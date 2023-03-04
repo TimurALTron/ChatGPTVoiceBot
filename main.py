@@ -1,4 +1,5 @@
 import configparser
+import os
 
 import torch
 
@@ -40,20 +41,20 @@ dp = Dispatcher(bot)
 
 
 async def handle_file(file: File, file_name: str):
-    Path("/home/ChatGPTVoiceBot/voices").mkdir(parents=True, exist_ok=True)
-    await bot.download_file(file_path=file.file_path, destination=f"/home/ChatGPTVoiceBot/voices/{file_name}")
+    Path(f"{os.getcwd()}/voices").mkdir(parents=True, exist_ok=True)
+    await bot.download_file(file_path=file.file_path, destination=f"{os.getcwd()}/voices/{file_name}")
 
 
 @dp.message_handler(content_types=["voice"])
 async def voice_handler(message: types.Message):
     voice = await message.voice.get_file()
     await handle_file(file=voice, file_name=f"{voice.file_id}.ogg")
-    given_audio = AudioSegment.from_file(f"/home/ChatGPTVoiceBot/voices/{voice.file_id}.ogg", format="ogg")
-    given_audio.export(f"/home/ChatGPTVoiceBot/voices/{voice.file_id}.wav", format="wav")
+    given_audio = AudioSegment.from_file(f"{os.getcwd()}/voices/{voice.file_id}.ogg", format="ogg")
+    given_audio.export(f"{os.getcwd()}/voices/{voice.file_id}.wav", format="wav")
 
 
 
-    hardvard = speech_recognition.AudioFile(f"/home/ChatGPTVoiceBot/voices/{voice.file_id}.wav")
+    hardvard = speech_recognition.AudioFile(f"{os.getcwd()}/voices/{voice.file_id}.wav")
     with hardvard as source:
         audio = r.record(source)
         query = r.recognize_google(audio, language='ru-RU')
@@ -65,10 +66,10 @@ async def voice_handler(message: types.Message):
             engine=model_engine,
             prompt=prompt,
             max_tokens=1024,
-            temperature=00,
+            temperature=0.7,
             top_p=1,
             frequency_penalty=0,
-            presence_penalty=1
+            presence_penalty=0
         )
         finalText = translit(completion.choices[0].text, 'ru')
 
@@ -76,9 +77,7 @@ async def voice_handler(message: types.Message):
 
         paths = model.save_wav(text=finalText.split('\n', 1)[1], speaker=speaker, sample_rate=sample_rate)
 
-        audioo = InputFile(f"/home/ChatGPTVoiceBot/test.wav")
-
-        await bot.send_voice(message.chat.id, voice=audioo)
+        await bot.send_voice(message.chat.id, open(f"{os.getcwd()}/test.wav", 'rb'))
 
 
 if __name__ == "__main__":
